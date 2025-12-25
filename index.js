@@ -3,12 +3,10 @@ import express from "express";
 const app = express();
 app.use(express.json());
 
-// root
 app.get("/", (req, res) => {
   res.send("AngeliQ API is running ❤️");
 });
 
-// health check (API test)
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
