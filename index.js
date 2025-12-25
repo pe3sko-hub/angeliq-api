@@ -4,7 +4,6 @@ import OpenAI from "openai";
 const app = express();
 app.use(express.json());
 
-// OpenAI client
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -14,26 +13,23 @@ app.get("/", (req, res) => {
   res.send("AngeliQ API is running ❤️");
 });
 
-// HEALTHCHECK – pre Railway
-app.get("/healthz", (req, res) => {
-  res.send("ok");
-});
-
-// INFO endpoint – aby GET /chat nepadal
-app.get("/chat", (req, res) => {
+// HEALTH CHECK
+app.get("/health", (req, res) => {
   res.json({
-    info: "Use POST /chat with JSON body { message: '...' }",
+    status: "ok",
+    service: "angeliq-api",
+    time: new Date().toISOString(),
   });
 });
 
-// CHAT endpoint – HLAVNÁ FUNKCIA
+// CHAT ENDPOINT (POST ONLY)
 app.post("/chat", async (req, res) => {
   try {
-    const { message } = req.body || {};
+    const { message } = req.body;
 
     if (!message) {
       return res.status(400).json({
-        error: "Missing 'message' in JSON body.",
+        error: "Missing 'message' in JSON body",
       });
     }
 
@@ -43,7 +39,7 @@ app.post("/chat", async (req, res) => {
         {
           role: "system",
           content:
-            "You are AngeliQ: playful, charming, flirty but classy, consensual, fun and emotionally intelligent. Keep responses short, warm, safe and positive. No explicit sexual content.",
+            "You are AngeliQ: playful, flirty, classy, consensual. Be fun, light, and safe.",
         },
         {
           role: "user",
@@ -56,7 +52,7 @@ app.post("/chat", async (req, res) => {
       text: response.output_text,
     });
   } catch (err) {
-    console.error("CHAT ERROR:", err);
+    console.error(err);
     res.status(500).json({
       error: "Server error",
       details: String(err.message || err),
