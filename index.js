@@ -1,19 +1,21 @@
 import express from "express";
 import OpenAI from "openai";
+import cors from "cors";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ROOT – test v prehliadači
+// root
 app.get("/", (req, res) => {
   res.send("AngeliQ API is running ❤️");
 });
 
-// HEALTH CHECK
+// health
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
@@ -22,7 +24,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// CHAT ENDPOINT (POST ONLY)
+// chat
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
@@ -39,7 +41,7 @@ app.post("/chat", async (req, res) => {
         {
           role: "system",
           content:
-            "You are AngeliQ: playful, flirty, classy, consensual. Be fun, light, and safe.",
+            "You are AngeliQ: playful, flirty, classy, consensual. Keep it fun and safe.",
         },
         {
           role: "user",
@@ -60,7 +62,6 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// PORT – Railway používa 8080
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
