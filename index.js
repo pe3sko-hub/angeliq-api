@@ -4,28 +4,37 @@ import OpenAI from "openai";
 const app = express();
 app.use(express.json());
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// OpenAI client
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-// root
+// ROOT – test v prehliadači
 app.get("/", (req, res) => {
   res.send("AngeliQ API is running ❤️");
 });
 
-// health
-app.get("/health", (req, res) => {
+// HEALTHCHECK – pre Railway
+app.get("/healthz", (req, res) => {
+  res.send("ok");
+});
+
+// INFO endpoint – aby GET /chat nepadal
+app.get("/chat", (req, res) => {
   res.json({
-    status: "ok",
-    service: "angeliq-api",
-    time: new Date().toISOString()
+    info: "Use POST /chat with JSON body { message: '...' }",
   });
 });
 
-// AI chat
+// CHAT endpoint – HLAVNÁ FUNKCIA
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body || {};
+
     if (!message) {
-      return res.status(400).json({ error: "Missing 'message' in JSON body." });
+      return res.status(400).json({
+        error: "Missing 'message' in JSON body.",
+      });
     }
 
     const response = await client.responses.create({
@@ -34,20 +43,29 @@ app.post("/chat", async (req, res) => {
         {
           role: "system",
           content:
-            "You are AngeliQ: playful, flirty, classy, consensual. Keep it fun and safe. No explicit sexual content; keep it suggestive, romantic, teasing, and respectful."
+            "You are AngeliQ: playful, charming, flirty but classy, consensual, fun and emotionally intelligent. Keep responses short, warm, safe and positive. No explicit sexual content.",
         },
-        { role: "user", content: message }
-      ]
+        {
+          role: "user",
+          content: message,
+        },
+      ],
     });
 
-    res.json({ text: response.output_text });
+    res.json({
+      text: response.output_text,
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error", details: String(err?.message || err) });
+    console.error("CHAT ERROR:", err);
+    res.status(500).json({
+      error: "Server error",
+      details: String(err.message || err),
+    });
   }
 });
 
-const PORT = process.env.PORT || 3000;
+// PORT – Railway používa 8080
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
